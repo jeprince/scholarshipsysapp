@@ -9,16 +9,60 @@ angular.module('your_app_name.controllers', [])
 
 })
 
+
 //LOGIN
 .controller('LoginCtrl', function($scope, $state, $templateCache, $q, $rootScope) {
-	$scope.doLogIn = function(){
-		$state.go('app.feeds-categories');
-	};
-
 	$scope.user = {};
 
-	$scope.user.email = "john@doe.com";
-	$scope.user.pin = "12345";
+	//loading the username and password from the local storage
+	username = window.localStorage.getItem("username");
+	password = window.localStorage.getItem ("password");
+
+	//check to see if the user did login to his/her account using this device
+	if (username ) {
+		$scope.user.email = username;
+		$scope.user.password = password;
+		function userLoggedIn( user ){
+ 			console.log( "user has logged in" );
+ 			$state.go('app.feeds-categories')
+		}
+
+		function gotError( err ){
+ 			console.log( "error message - " + err.message );
+ 			console.log( "error code - " + err.statusCode );
+ 			alert (err.message);
+		}
+	
+		Backendless.UserService.login( username, password, true, new Backendless.Async( userLoggedIn, gotError ) );
+	}
+		
+
+	//$scope.user.email = "john@doe.com";
+	//$scope.user.pin = "12345";
+	
+	$scope.doLogIn = function(){
+		var self=this;
+	
+		function userLoggedIn( user ){
+ 			console.log( "user has logged in" );
+ 			//saving the username and password in the local storage 
+ 			window.localStorage.setItem ( "username" ,self.user.email) ;
+	 		window.localStorage.setItem ("password" ,self.user.password);
+ 			$state.go('app.feeds-categories')
+		}
+ 
+		function gotError( err ){
+ 			console.log( "error message - " + err.message );
+ 			console.log( "error code - " + err.statusCode );
+ 			alert (err.message);
+		}
+ 		
+ 		Backendless.UserService.login( self.user.email, self.user.password, true, new Backendless.Async( userLoggedIn, gotError ) );
+	};
+
+	
+
+	
 
 	// We need this for the form validation
 	$scope.selected_tab = "";
@@ -32,16 +76,69 @@ angular.module('your_app_name.controllers', [])
 .controller('SignupCtrl', function($scope, $state) {
 	$scope.user = {};
 
-	$scope.user.email = "john@doe.com";
+	//$scope.user.email = "john@doe.com";
+	$scope.showSignupContainer = true;
+	$scope.showSignupMsg = false;
 
+	$scope.ok = function(){
+		$state.go('auth.login');
+	}
+	
 	$scope.doSignUp = function(){
-		$state.go('app.feeds-categories');
+	//$scope.errMsg=Error.message;
+
+		var self=this;
+
+  		self.email = "";
+  		self.password = "";
+		self.name = "";
+
+		$scope.showSignupContainer=false;
+		$scope.showSignupMsg=true;
+
+		
+		//register new user
+		var user = new Backendless.User();
+		user.name = self.user.name;
+		user.email = self.user.email;
+		user.password = self.user.password;
+		
+		function userRegistered( user ){
+			
+ 			$scope.signupMsg = "user has been registered";
+ 			$scope.$apply();
+ 			// $state.go('auth.login');
+		}
+ 
+		function gotError( err ){
+			$scope.signupMsg = err.message;
+			
+ 			console.log( "error message - " + err.message );
+ 			console.log( "error code - " + err.statusCode );
+ 			$scope.$apply();
+		}
+		
+		Backendless.UserService.register( user, new Backendless.Async( userRegistered, gotError ) );
+
+		
 	};
 })
 
 .controller('ForgotPasswordCtrl', function($scope, $state) {
 	$scope.recoverPassword = function(){
-		$state.go('app.feeds-categories');
+		function passwordRecoverySent( user ){
+ 			alert( "an email with a link to restore password has been sent to the user" );
+			$state.go('auth.login');
+		}
+ 
+		function gotError( err ){
+ 			console.log( "error message - " + err.message );
+ 			console.log( "error code - " + err.statusCode );
+		}
+ 
+		var async = new Backendless.Async( passwordRecoverySent, gotError );
+		Backendless.UserService.restorePassword( $scope.user.email, async );
+		
 	};
 
 	$scope.user = {};
@@ -294,6 +391,20 @@ angular.module('your_app_name.controllers', [])
 			destructiveButtonClicked: function(){
 				//Called when the destructive button is clicked.
 				//Return true to close the action sheet, or false to keep it opened.
+
+				//clear the local storage to let the user enter his/her username and password again
+				localStorage.clear();
+
+				function gotError( err ){
+ 					alert( "error message - " + err.message );
+ 					console.log( "error code - " + err.statusCode );
+				}
+ 
+				function userLoggedout(){
+ 					alert( "user has been logged out" );
+				}
+				
+				Backendless.UserService.logout( new Backendless.Async( userLoggedout, gotError ) );
 				$state.go('auth.walkthrough');
 			}
 		});

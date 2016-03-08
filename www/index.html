@@ -8,6 +8,19 @@
 
     <link href="css/ionic.app.css" rel="stylesheet">
     <link href="lib/ionic-contrib-tinder-cards/ionic.tdcards.css" rel="stylesheet">
+    
+    <!--Backendless API-->
+    <script src="http://api.backendless.com/sdk/js/latest/backendless.js"></script>
+    <script type="text/javascript">
+      console.log("initializing app...");
+
+      //Backendless application initialization
+        var APPLICATION_ID = 'A54AC08E-78AB-FFD8-FF94-4FED529C7200',
+        SECRET_KEY = 'B92C3A4E-C07F-FFE5-FF7E-91EBA7456400',
+        VERSION = 'v1'; //default application version;
+        Backendless.initApp(APPLICATION_ID, SECRET_KEY, VERSION);
+
+    </script>
     <script src="https://maps.google.com/maps/api/js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="lib/ionic/js/ionic.bundle.js"></script>
@@ -33,6 +46,7 @@
     <script src="js/factories.js"></script>
     <script src="js/views.js"></script>
     <script src="js/config.js"></script>
+
   </head>
   <body ng-app="your_app_name">
     <ion-nav-view></ion-nav-view>
